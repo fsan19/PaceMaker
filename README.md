@@ -1,5 +1,6 @@
 # PaceMaker
-
+This assignment involves designing a pacemaker controller on a Altera(DE2-115) FPGA 
+with two modes. Refer to presentation for design information.
 ## Run instructions
 * Connect FPGA to PC using blaster and UART via RS232 cable
 * Open Quartus Prime Programmer and click on Add File to add the cs303.sof for programming the nios processor
