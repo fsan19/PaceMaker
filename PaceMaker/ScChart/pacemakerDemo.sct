@@ -1,0 +1,122 @@
+scchart DDDpacemaker {
+input signal Rst;
+input signal Vs, As;
+input signal VRPTO, AVITO, URITO, LRITO, PVARPTO, AEITO;
+output signal Vp, Ap;
+//V_timers
+output signal VRP_start, URI_start, LRI_start, PVARP_start, AEI_start;
+//A timers
+output signal AVI_start;
+output signal start_VTimers, start_ATimers;
+output signal AVI_stop, AEI_stop;
+
+	
+	region main :
+	
+	
+	initial state ControlUnit{
+	  
+		region ASense_FSM:
+			 
+			 	initial state init
+			  		o-> Loop with As / start_ATimers
+			  		--> Loop with PVARP_start;
+			 
+	      		state Loop{
+	      		     initial state init
+	      		     	--> PVARP_over with PVARPTO;
+	      		     
+	      		     state PVARP_over
+	      		     	--> PVARP_over with As / start_ATimers;
+	      		 }
+	      		  
+	      		 --> Loop with PVARP_start;
+	    
+	    region VSense_FSM:
+	      		initial state init
+	      		 	o-> Loop with Vs / start_VTimers
+	      		 	--> Loop with VRP_start;
+	      		  
+	      		  
+	      		 state Loop{
+	      		     initial state init
+	      		     	--> VRP_over with VRPTO;
+	      		     
+	      		     state VRP_over
+	      		     	
+	      		     	--> VRP_over with Vs / start_VTimers;
+	      		     
+	      		 }
+	      		  
+	      		 --> Loop with VRP_start;
+	   			
+	    region V_Timers:
+
+		 initial state startVTimers
+	   		--> startVTimers with start_VTimers / VRP_start; URI_start; LRI_start; AEI_start;PVARP_start;AVI_stop;
+		   		
+		region A_Timers:
+	    
+		   	initial state startATimers
+		   	
+		   		--> startATimers with start_ATimers / AVI_start; AEI_stop;
+		
+		region VPace_FSM:		
+						
+		  	initial state init
+		  		o-> afterVsignal with start_VTimers
+		  		--> afterVsignal with AVITO / Vp; start_VTimers;
+		  		
+		  		
+			state afterVsignal{
+			  
+			  	region afterV:
+				    initial state waitURI
+				    	--> URI_over with URITO
+				    	--> extendAVI with AVITO;
+				    	
+				    state URI_over
+				    	o-> vSense with start_VTimers
+				    	--> vPace  with (LRITO || AVITO) / Vp; start_VTimers;
+				    	
+	
+				    
+				    state extendAVI
+				    	--> vPace  with URITO / Vp;start_VTimers;
+				    	
+				    state vPace;
+				    
+				    state vSense;
+			}
+			
+			--> afterVsignal with URI_start;
+
+		region APace_FSM:  	
+		  			
+			initial state AEI{
+			  	initial state waitAEI
+			  		o-> finish with start_ATimers
+			  		--> aPace with AEITO / Ap; start_ATimers;
+			  					  		
+			  	state finish;
+			  	
+			  	state aPace;
+			}
+			
+			--> AEI with AEI_start;
+		
+	
+	}
+	
+	o-> ControlUnit with Rst;
+}
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
